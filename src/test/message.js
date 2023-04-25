@@ -25,30 +25,60 @@ after((done) => {
   done()
 })
 
+const USER_OBJECT_ID = 'aaaaaaaaaaaa' // 12 byte string
+const MESSAGE_OBJECT_ID = 'bbbbbbbbbbbb'
 
 describe('Message API endpoints', () => {
     beforeEach((done) => {
         // TODO: add any beforeEach code here
-        done()
+        const messages = new Message({
+            title: "MessageTest",
+            body: "This is a Message Body Test",
+            author: USER_OBJECT_ID,
+            _id: MESSAGE_OBJECT_ID,
+        })
+        messages.save()
+        .then(() => {
+            done()
+        })
     })
 
     afterEach((done) => {
         // TODO: add any afterEach code here
-        done()
+        Message.deleteMany({title: "MessageTest"})
+        .then(() => {
+            done()
+        })
     })
 
     it('should load all messages', (done) => {
         // TODO: Complete this
+        chai.request(app)
+        .get('/messages')
+        .end((err, res) => {
+            if (err) { done(err) }
+            expect(res).to.have.status(200)
+            expect(res.body.messages).to.be.an("array")
+            done()
+        })
         done()
     })
 
     it('should get one specific message', (done) => {
-        // TODO: Complete this
+        chai.request(app)
+        .get(`/messages/${MESSAGE_OBJECT_ID}`)
+        .end((err, res) => {
+            if (err) { done(err) }
+            expect(res).to.have.status(200)
+            expect(res.body).to.be.an('object')
+            expect(res.body.title).to.equal('MessageTest')
+            expect(res.body.body).to.equal('This is a Message Body Test')
+            done()
+        })
         done()
     })
 
     it('should post a new message', (done) => {
-        // TODO: Complete this
         done()
     })
 
