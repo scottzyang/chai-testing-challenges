@@ -21,6 +21,7 @@ require('./config/db-setup.js')
 // Routes
 const router = require('./routes/index.js')
 app.use(router)
+app.get("/", (req, res) => "hey")
 
 // Start Server
 app.listen(process.env.PORT, () => {

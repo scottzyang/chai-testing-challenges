@@ -8,7 +8,7 @@ const Message = require('../models/message')
 router.get('/', async (req, res) => {
     // TODO: Get all Message objects using `.find()`
     try {
-        const messages = await Messages.find();
+        const messages = await Message.find();
         return res.json({ messages })
     } catch (err) {
         return res.json({ message: err.message });

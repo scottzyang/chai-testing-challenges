@@ -25,70 +25,115 @@ after((done) => {
   done()
 })
 
-const USER_OBJECT_ID = 'aaaaaaaaaaaa' // 12 byte string
-const MESSAGE_OBJECT_ID = 'bbbbbbbbbbbb'
 
 describe('Message API endpoints', () => {
-    beforeEach((done) => {
+    beforeEach( async () => {
         // TODO: add any beforeEach code here
-        const messages = new Message({
+        const userTest = new User({
+            username: "usertest",
+            password: "password"
+        })
+
+        await userTest.save();
+
+        const messageTest = new Message({
             title: "MessageTest",
             body: "This is a Message Body Test",
-            author: USER_OBJECT_ID,
-            _id: MESSAGE_OBJECT_ID,
+            author: userTest,
         })
-        messages.save()
-        .then(() => {
-            done()
-        })
+
+        await messageTest.save();
     })
 
     afterEach((done) => {
         // TODO: add any afterEach code here
-        Message.deleteMany({title: "MessageTest"})
-        .then(() => {
-            done()
-        })
+        Message.deleteMany({title: "MessageTest"});
+
+        User.deleteMany({ username: "usertest" });
+
+        done();
     })
 
     it('should load all messages', (done) => {
         // TODO: Complete this
         chai.request(app)
-        .get('/messages')
-        .end((err, res) => {
-            if (err) { done(err) }
-            expect(res).to.have.status(200)
-            expect(res.body.messages).to.be.an("array")
-            done()
-        })
-        done()
+            .get('/messages')
+            .end((err, res) => {
+                if (err) { done(err) }
+                expect(res).to.have.status(200);
+                expect(res.body.messages).to.be.an("array");
+                done();
+            })
     })
 
     it('should get one specific message', (done) => {
-        chai.request(app)
-        .get(`/messages/${MESSAGE_OBJECT_ID}`)
-        .end((err, res) => {
-            if (err) { done(err) }
-            expect(res).to.have.status(200)
-            expect(res.body).to.be.an('object')
-            expect(res.body.title).to.equal('MessageTest')
-            expect(res.body.body).to.equal('This is a Message Body Test')
-            done()
-        })
-        done()
+        Message.findOne({ title: "MessageTest" })
+            .then((message) => {
+                chai.request(app)
+                    .get(`/messages/${message._id}`)
+                    .end((err, res) => {
+                        if (err) { done(err) }
+                        expect(res).to.have.status(200)
+                        expect(res.body.message).to.be.an("object")
+                        expect(res.body.message.title).to.equal("MessageTest")
+                        expect(res.body.message._id).to.equal(message._id.toString())
+                        done()
+                    })
+            })
     })
 
     it('should post a new message', (done) => {
-        done()
+        User.findOne({ username: "usertest" })
+            .then((user) => {
+                chai.request(app)
+                    .post("/messages")
+                    .send({
+                        title: "Test Title",
+                        body: "Test Message",
+                        author: user._id.toString()
+                    })
+                    .end((err, res) => {
+                        if (err) done(err)
+                        expect(res).to.have.status(200)
+                        expect(res.body).to.be.an("object")
+                        expect(res.body.author).to.equal(user._id.toString())
+                        done()
+                    })
+            })
     })
 
     it('should update a message', (done) => {
         // TODO: Complete this
-        done()
+        Message.findOne({ title: "MessageTest" })
+            .then((message) => {
+                chai.request(app)
+                    .put(`/messages/${message._id}`)
+                    .send({
+                        body: "let's change this"
+                    })
+                    .end((err, res) => {
+                        if (err) { done(err) }
+                        expect(res).to.have.status(200)
+                        expect(res.body).to.be.an("object")
+                        expect(res.body.message.body).to.equal("let's change this")
+                        expect(res.body.message._id).to.equal(message._id.toString())
+                        done()
+                    })
+            })
     })
 
     it('should delete a message', (done) => {
         // TODO: Complete this
-        done()
+        Message.findOne({ title: "MessageTest" })
+            .then((message) => {
+                chai.request(app)
+                    .delete(`/messages/${message._id}`)
+                    .end((err, res) => {
+                        if (err) { done(err) }
+                        expect(res).to.have.status(200)
+                        expect(res.body.message).to.equal("Successfully removed")
+                        done()
+                    })
+            })
     })
 })
